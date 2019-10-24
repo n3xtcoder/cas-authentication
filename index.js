@@ -162,6 +162,7 @@ function CASAuthentication(options) {
     this.session_name    = options.session_name !== undefined ? options.session_name : 'cas_user';
     this.session_info    = [ '2.0', '3.0', 'saml1.1' ].indexOf(this.cas_version) >= 0 && options.session_info !== undefined ? options.session_info : false;
     this.destroy_session = options.destroy_session !== undefined ? !!options.destroy_session : false;
+    this.append_params   = options.append_params
 
     // Bind the prototype routing methods to this instance of CASAuthentication.
     this.bounce          = this.bounce.bind(this);
@@ -247,10 +248,13 @@ CASAuthentication.prototype._login = function(req, res, next) {
     // query parameter, use that. Otherwise, just use the URL from the request.
     req.session.cas_return_to = req.query.returnTo || url.parse(req.originalUrl).path;
 
+    const append_params = this.append_params ? this.append_params : {}
+
     // Set up the query parameters.
     var query = {
         service: this.service_url + url.parse(req.originalUrl).pathname,
-        renew: this.renew
+        renew: this.renew,
+        ...append_params
     };
 
     // Redirect to the CAS login.
